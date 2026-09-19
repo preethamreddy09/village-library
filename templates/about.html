@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>About the Village Reading Room</h2>
+
+<p class="lede">
+    This library started as one simple idea: after spending over a decade
+    working abroad, a friend of the family wanted to give something back to
+    the village he grew up in — not as a business, but simply because a
+    place to read and borrow books felt like something worth building here.
+</p>
+
+<div class="about-gallery">
+    <img src="{{ url_for('static', filename='images/about/library_1.jpg') }}" alt="Inside the Village Reading Room">
+    <img src="{{ url_for('static', filename='images/about/library_2.jpg') }}" alt="Bookshelves at the Village Reading Room">
+    <img src="{{ url_for('static', filename='images/about/library_3.jpg') }}" alt="Villagers reading at the library">
+</div>
+
+<h3>What we're trying to do</h3>
+<p>
+    Every book here is free to borrow. There's no membership fee and no
+    paperwork beyond a name and a due date — the only thing we ask is that
+    books come back so the next person can read them too.
+</p>
+<p>
+    Behind the scenes, every loan we record also helps us understand what
+    the village actually wants to read — which genres and books people keep
+    coming back for — so future additions to the shelves are guided by real
+    interest, not guesswork.
+</p>
+
+<h3>Everyone is welcome</h3>
+<p>
+    Whether you're here to borrow a book, suggest one, or just see what
+    we're building — you're welcome to browse the
+    <a href="{{ url_for('catalog.home') }}">catalog</a> or see
+    <a href="{{ url_for('patterns.patterns_home') }}">what the village is reading</a>.
+</p>
+{% endblock %}

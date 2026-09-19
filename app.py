@@ -20,12 +20,13 @@ def create_app():
     from routes.patterns import patterns_bp
     from routes.auth import auth_bp
     from routes.history import history_bp
-
+    from routes.about import about_bp
     app.register_blueprint(catalog_bp)
     app.register_blueprint(circulation_bp)
     app.register_blueprint(patterns_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(history_bp)
+    app.register_blueprint(about_bp)
 
     # Create tables on first run if they don't exist yet
     with app.app_context():
