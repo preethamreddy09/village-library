@@ -1,5 +1,5 @@
-import os
 import uuid
+import requests
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from models import db, Book, Loan
 from routes.auth import login_required
@@ -10,6 +10,35 @@ catalog_bp = Blueprint("catalog", __name__)
 def is_allowed_file(filename):
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     return ext in current_app.config["ALLOWED_IMAGE_EXTENSIONS"]
+
+
+def upload_cover_to_supabase(file):
+    """Uploads a cover image to Supabase Storage and returns its public URL, or None on failure."""
+    ext = file.filename.rsplit(".", 1)[-1].lower()
+    filename = f"{uuid.uuid4().hex}.{ext}"
+
+    supabase_url = current_app.config["SUPABASE_URL"]
+    service_key = current_app.config["SUPABASE_SERVICE_KEY"]
+    bucket = current_app.config["SUPABASE_BUCKET"]
+
+    if not supabase_url or not service_key:
+        return None
+
+    upload_endpoint = f"{supabase_url}/storage/v1/object/{bucket}/{filename}"
+    file_bytes = file.read()
+
+    response = requests.post(
+        upload_endpoint,
+        headers={
+            "Authorization": f"Bearer {service_key}",
+            "Content-Type": file.mimetype or "application/octet-stream",
+        },
+        data=file_bytes,
+    )
+
+    if response.status_code in (200, 201):
+        return f"{supabase_url}/storage/v1/object/public/{bucket}/{filename}"
+    return None
 
 
 @catalog_bp.route("/")
@@ -37,12 +66,12 @@ def add_book():
         except ValueError:
             total_copies = 1
 
-        cover_filename = None
+        cover_url = None
         file = request.files.get("cover_image")
         if file and file.filename and is_allowed_file(file.filename):
-            ext = file.filename.rsplit(".", 1)[-1].lower()
-            cover_filename = f"{uuid.uuid4().hex}.{ext}"
-            file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], cover_filename))
+            cover_url = upload_cover_to_supabase(file)
+            if cover_url is None:
+                flash("Book saved, but the cover image failed to upload.")
 
         new_book = Book(
             title=title,
@@ -50,7 +79,7 @@ def add_book():
             genre=genre,
             summary=summary,
             total_copies=total_copies,
-            cover_image=cover_filename,
+            cover_image=cover_url,
         )
         db.session.add(new_book)
         db.session.commit()
@@ -89,10 +118,11 @@ def edit_book(book_id):
 
         file = request.files.get("cover_image")
         if file and file.filename and is_allowed_file(file.filename):
-            ext = file.filename.rsplit(".", 1)[-1].lower()
-            cover_filename = f"{uuid.uuid4().hex}.{ext}"
-            file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], cover_filename))
-            book.cover_image = cover_filename
+            cover_url = upload_cover_to_supabase(file)
+            if cover_url:
+                book.cover_image = cover_url
+            else:
+                flash("Changes saved, but the new cover image failed to upload.")
 
         book.title = title
         book.author = author
@@ -117,9 +147,6 @@ def delete_book(book_id):
         flash("Can't remove — copies are still out on loan.")
         return redirect(url_for("catalog.home"))
 
-    # Detach loan history from this book row before deleting it.
-    # The loans themselves are untouched — they already carry their own
-    # book_title / book_genre snapshot, so Patterns stats stay intact.
     Loan.query.filter_by(book_id=book.id).update({"book_id": None})
 
     title = book.title

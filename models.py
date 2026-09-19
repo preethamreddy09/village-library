@@ -73,3 +73,8 @@ class Loan(db.Model):
         if self.return_date:
             return "returned"
         return "overdue" if self.is_overdue else "on loan"
+
+    @property
+    def cover_image_url(self):
+        """Returns the full image URL if one was uploaded, or None (template falls back to the default)."""
+        return self.cover_image if self.cover_image else None

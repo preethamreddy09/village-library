@@ -16,7 +16,11 @@
 <div class="catalog-grid">
     {% for book in books %}
     <div class="card">
-        <img src="{{ url_for('static', filename='uploads/' + book.cover_image_url) }}" alt="{{ book.title }}">
+        {% if book.cover_image_url %}
+        <img src="{{ book.cover_image_url }}" alt="{{ book.title }}">
+        {% else %}
+        <img src="{{ url_for('static', filename='uploads/default-cover.png') }}" alt="{{ book.title }}">
+        {% endif %}
         <span class="genre-tag">{{ book.genre }}</span>
         <h3>{{ book.title }}</h3>
         <p class="author">{{ book.author }}</p>

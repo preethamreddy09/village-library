@@ -19,6 +19,10 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-secret-key")
     ADMIN_PASSCODE = os.environ.get("ADMIN_PASSCODE", "1234")
 
+    SUPABASE_URL = os.environ.get("SUPABASE_URL")
+    SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+    SUPABASE_BUCKET = "book-images"
+
     SQLALCHEMY_DATABASE_URI = get_database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
