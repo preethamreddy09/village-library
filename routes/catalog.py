@@ -38,6 +38,7 @@ def upload_cover_to_supabase(file):
 
     if response.status_code in (200, 201):
         return f"{supabase_url}/storage/v1/object/public/{bucket}/{filename}"
+    print(f"SUPABASE UPLOAD FAILED: status={response.status_code}, body={response.text}")
     return None
 
 
