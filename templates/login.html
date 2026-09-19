@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Librarian sign-in</h2>
+
+{% if error %}<p style="color:red;">{{ error }}</p>{% endif %}
+
+<form method="POST" class="book-form">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label>Passcode
+        <input type="password" name="passcode" autofocus required>
+    </label>
+    <button type="submit">Unlock</button>
+</form>
+{% endblock %}

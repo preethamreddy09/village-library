@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Lend &amp; Return</h2>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="flashes">
+    {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<h3>Lend a book</h3>
+<form method="POST" action="{{ url_for('circulation.lend_book') }}" class="book-form">
+    <label>Book
+        <select name="book_id" required>
+            {% for book in lendable_books %}
+            <option value="{{ book.id }}">{{ book.title }} — {{ book.author }} ({{ book.copies_available }} left)</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Borrower's name
+        <input type="text" name="borrower_name" required>
+    </label>
+    <label>Contact / area (optional)
+        <input type="text" name="borrower_contact">
+    </label>
+    <label>Loan length (days)
+        <input type="number" name="days" value="14" min="1">
+    </label>
+    <button type="submit">Lend this book</button>
+</form>
+
+<h3>Currently out</h3>
+<table class="ledger">
+    <thead>
+        <tr><th>Book</th><th>Borrower</th><th>Issued</th><th>Due</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for loan in active_loans %}
+        <tr>
+            <td>{{ loan.book_title }}</td>
+            <td>{{ loan.borrower_name }}</td>
+            <td>{{ loan.issue_date }}</td>
+            <td>{{ loan.due_date }}</td>
+            <td>
+                {% if loan.is_overdue %}
+                    <span class="badge late">Overdue</span>
+                {% else %}
+                    <span class="badge ok">On time</span>
+                {% endif %}
+            </td>
+            <td>
+                <form method="POST" action="{{ url_for('circulation.return_book', loan_id=loan.id) }}">
+                    <button type="submit">Return</button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="6">Nothing out on loan right now.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Loan history</h2>
+<p style="color: var(--ink-soft); margin-top: -8px;">{{ total_count }} loan{{ "s" if total_count != 1 else "" }} recorded, all time.</p>
+
+<form method="GET" class="filter-bar">
+    <label>Genre
+        <select name="genre" onchange="this.form.submit()">
+            <option value="">All genres</option>
+            {% for g in all_genres %}
+            <option value="{{ g }}" {{ "selected" if g == selected_genre else "" }}>{{ g }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Book
+        <select name="book_title" onchange="this.form.submit()">
+            <option value="">All books</option>
+            {% for t in all_titles %}
+            <option value="{{ t }}" {{ "selected" if t == selected_title else "" }}>{{ t }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Status
+        <select name="status" onchange="this.form.submit()">
+            <option value="" {{ "selected" if selected_status == "" else "" }}>All</option>
+            <option value="active" {{ "selected" if selected_status == "active" else "" }}>Currently out</option>
+            <option value="overdue" {{ "selected" if selected_status == "overdue" else "" }}>Overdue</option>
+            <option value="returned" {{ "selected" if selected_status == "returned" else "" }}>Returned</option>
+        </select>
+    </label>
+
+    {% if selected_genre or selected_title or selected_status %}
+    <a href="{{ url_for('history.history_home') }}" class="clear-filters">Clear filters</a>
+    {% endif %}
+</form>
+
+<table class="ledger">
+    <thead>
+        <tr><th>Book</th><th>Genre</th><th>Borrower</th><th>Issued</th><th>Due</th><th>Returned</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+    {% for loan in loans %}
+        <tr>
+            <td>{{ loan.book_title }}</td>
+            <td>{{ loan.book_genre }}</td>
+            <td>{{ loan.borrower_name }}</td>
+            <td>{{ loan.issue_date }}</td>
+            <td>{{ loan.due_date }}</td>
+            <td>{{ loan.return_date if loan.return_date else "—" }}</td>
+            <td>
+                {% if loan.return_date %}
+                    <span class="badge ok">Returned</span>
+                {% elif loan.is_overdue %}
+                    <span class="badge late">Overdue</span>
+                {% else %}
+                    <span class="badge ok">On loan</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="7">No loans match these filters.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination">
+    {% if has_prev %}
+    <a href="{{ url_for('history.history_home', genre=selected_genre, book_title=selected_title, status=selected_status, page=page-1) }}">← Newer</a>
+    {% endif %}
+    <span>Page {{ page }}</span>
+    {% if has_next %}
+    <a href="{{ url_for('history.history_home', genre=selected_genre, book_title=selected_title, status=selected_status, page=page+1) }}">Older →</a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+.env
+venv/
+__pycache__/
+*.pyc
+instance/
+static/uploads/*
+!static/uploads/default-cover.png

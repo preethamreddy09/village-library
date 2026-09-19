@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Catalog</h2>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="flashes">
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<div class="catalog-grid">
+    {% for book in books %}
+    <div class="card">
+        <img src="{{ url_for('static', filename='uploads/' + book.cover_image_url) }}" alt="{{ book.title }}">
+        <span class="genre-tag">{{ book.genre }}</span>
+        <h3>{{ book.title }}</h3>
+        <p class="author">{{ book.author }}</p>
+        <p class="summary">{{ book.summary }}</p>
+        <div class="availability">
+            {% if book.is_available %}
+                <span class="dot ok"></span> {{ book.copies_available }} of {{ book.total_copies }} available
+            {% else %}
+                <span class="dot none"></span> None available
+            {% endif %}
+        </div>
+        {% if session.get('is_librarian') %}
+        <div class="card-actions">
+            <a href="{{ url_for('catalog.edit_book', book_id=book.id) }}" class="btn">Edit</a>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No books yet — the catalog is empty.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

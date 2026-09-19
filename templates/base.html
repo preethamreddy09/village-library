@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Village Reading Room</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>📖 Village Reading Room</h1>
+    </header>
+
+    <nav>
+    <a href="{{ url_for('catalog.home') }}">Catalog</a>
+    <a href="{{ url_for('patterns.patterns_home') }}">Patterns</a>
+    {% if session.get('is_librarian') %}
+    <a href="{{ url_for('catalog.add_book') }}">Add a book</a>
+    <a href="{{ url_for('circulation.circulation_home') }}">Lend &amp; Return</a>
+    <a href="{{ url_for('history.history_home') }}">History</a>
+    {% endif %}
+
+    <span class="login-status">
+        {% if session.get('is_librarian') %}
+            🔓 Librarian mode
+            <a href="{{ url_for('auth.logout') }}">Sign out</a>
+        {% else %}
+            🔒 Browsing
+            <a href="{{ url_for('auth.login') }}">Librarian sign-in</a>
+        {% endif %}
+    </span>
+</nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
