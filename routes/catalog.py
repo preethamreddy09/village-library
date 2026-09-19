@@ -31,6 +31,7 @@ def upload_cover_to_supabase(file):
         upload_endpoint,
         headers={
             "Authorization": f"Bearer {service_key}",
+            "apikey": service_key,
             "Content-Type": file.mimetype or "application/octet-stream",
         },
         data=file_bytes,
