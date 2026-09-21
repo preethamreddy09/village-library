@@ -39,3 +39,8 @@ app = create_app()
 
 if __name__ == "__main__":
     app.run(debug=False)
+
+
+#git add .
+#git commit -m "Add About page and site-wide footer"
+#git push origin main
