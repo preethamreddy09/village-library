@@ -15,15 +15,12 @@ class Book(db.Model):
     cover_image = db.Column(db.String(255), nullable=True)
     total_copies = db.Column(db.Integer, nullable=False, default=1)
 
-    # Loans referencing this book while it still exists in the catalog.
-    # No delete-cascade here: removing a book must NEVER erase loan
-    # history, since each Loan keeps its own snapshot of title/genre
-    # (see below) and survives independently.
     loans = db.relationship("Loan", backref="book")
 
     @property
     def cover_image_url(self):
-        return self.cover_image if self.cover_image else "default-cover.png"
+        """Returns the full image URL if one was uploaded, or None (template falls back to the default)."""
+        return self.cover_image if self.cover_image else None
 
     @property
     def copies_on_loan(self):
@@ -41,19 +38,23 @@ class Book(db.Model):
     def times_borrowed(self):
         return len(self.loans)
 
+    @property
+    def next_available_date(self):
+        """Earliest due date among this book's active loans, or None if copies are already available."""
+        if self.is_available:
+            return None
+        active = [l for l in self.loans if l.return_date is None]
+        if not active:
+            return None
+        return min(l.due_date for l in active)
+
 
 class Loan(db.Model):
     __tablename__ = "loans"
 
     id = db.Column(db.Integer, primary_key=True)
-
-    # Nullable on purpose: if the book is later removed from the catalog,
-    # this becomes NULL, but the loan record itself is never deleted.
     book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=True)
 
-    # Snapshot fields, captured at the moment the book was lent. This is
-    # what makes loan history (and every Patterns stat built from it)
-    # permanent, regardless of whether the book still exists.
     book_title = db.Column(db.String(200), nullable=False)
     book_genre = db.Column(db.String(100), nullable=False)
 
@@ -73,18 +74,3 @@ class Loan(db.Model):
         if self.return_date:
             return "returned"
         return "overdue" if self.is_overdue else "on loan"
-
-    @property
-    def cover_image_url(self):
-        """Returns the full image URL if one was uploaded, or None (template falls back to the default)."""
-        return self.cover_image if self.cover_image else None
-
-    @property
-    def next_available_date(self):
-        """Earliest due date among this book's active loans, or None if copies are already available."""
-        if self.is_available:
-            return None
-        active = [l for l in self.loans if l.return_date is None]
-        if not active:
-            return None
-        return min(l.due_date for l in active)
