@@ -111,8 +111,9 @@ button:hover, .btn:hover { background: var(--ledger-hover); }
 }
 .card img {
     width: 100%;
-    height: auto;
-    display: block;
+    height: 150px;
+    object-fit: cover;
+    object-position: top;
     border: 1px solid var(--card-line);
     border-radius: 2px;
 }
