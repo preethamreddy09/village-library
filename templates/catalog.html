@@ -16,22 +16,38 @@
 <div class="catalog-grid">
     {% for book in books %}
     <div class="card">
-        {% if book.cover_image_url %}
-        <img src="{{ book.cover_image_url }}" alt="{{ book.title }}">
-        {% else %}
-        <img src="{{ url_for('static', filename='uploads/default-cover.png') }}" alt="{{ book.title }}">
-        {% endif %}
+        <div class="book-cover-click"
+             data-title="{{ book.title }}"
+             data-author="{{ book.author }}"
+             data-genre="{{ book.genre }}"
+             data-summary="{{ book.summary }}"
+             data-cover="{{ book.cover_image_url if book.cover_image_url else url_for('static', filename='uploads/default-cover.png') }}"
+             data-available="{{ '1' if book.is_available else '0' }}"
+             data-avail-text="{% if book.is_available %}{{ book.copies_available }} of {{ book.total_copies }} available{% else %}None available{% endif %}"
+             data-next-date="{{ book.next_available_date.strftime('%d %b') if book.next_available_date else '' }}">
+
+            {% if book.cover_image_url %}
+            <img src="{{ book.cover_image_url }}" alt="{{ book.title }}">
+            {% else %}
+            <img src="{{ url_for('static', filename='uploads/default-cover.png') }}" alt="{{ book.title }}">
+            {% endif %}
+        </div>
+
         <span class="genre-tag">{{ book.genre }}</span>
         <h3>{{ book.title }}</h3>
         <p class="author">{{ book.author }}</p>
-        <p class="summary">{{ book.summary }}</p>
+
         <div class="availability">
             {% if book.is_available %}
                 <span class="dot ok"></span> {{ book.copies_available }} of {{ book.total_copies }} available
             {% else %}
                 <span class="dot none"></span> None available
+                {% if book.next_available_date %}
+                <div class="next-available">Expected back around {{ book.next_available_date.strftime('%d %b') }}</div>
+                {% endif %}
             {% endif %}
         </div>
+
         {% if session.get('is_librarian') %}
         <div class="card-actions">
             <a href="{{ url_for('catalog.edit_book', book_id=book.id) }}" class="btn">Edit</a>
@@ -44,4 +60,55 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- Book detail modal -->
+<div class="modal-overlay" id="bookModal">
+    <div class="modal-box">
+        <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+        <img id="modalCover" src="" alt="">
+        <span class="genre-tag" id="modalGenre"></span>
+        <h3 id="modalTitle"></h3>
+        <p class="author" id="modalAuthor"></p>
+        <p class="summary-full" id="modalSummary"></p>
+        <div class="availability" id="modalAvailability"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("bookModal");
+    const closeBtn = document.getElementById("modalClose");
+
+    document.querySelectorAll(".book-cover-click").forEach(function (el) {
+        el.addEventListener("click", function () {
+            document.getElementById("modalCover").src = el.dataset.cover;
+            document.getElementById("modalTitle").textContent = el.dataset.title;
+            document.getElementById("modalAuthor").textContent = el.dataset.author;
+            document.getElementById("modalGenre").textContent = el.dataset.genre;
+            document.getElementById("modalSummary").textContent = el.dataset.summary || "No summary added yet.";
+
+            const availEl = document.getElementById("modalAvailability");
+            if (el.dataset.available === "1") {
+                availEl.innerHTML = '<span class="dot ok"></span> ' + el.dataset.availText;
+            } else {
+                let html = '<span class="dot none"></span> ' + el.dataset.availText;
+                if (el.dataset.nextDate) {
+                    html += '<div class="next-available">Expected back around ' + el.dataset.nextDate + '</div>';
+                }
+                availEl.innerHTML = html;
+            }
+
+            modal.classList.add("active");
+        });
+    });
+
+    closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+    modal.addEventListener("click", function (e) {
+        if (e.target === modal) modal.classList.remove("active");
+    });
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") modal.classList.remove("active");
+    });
+});
+</script>
 {% endblock %}

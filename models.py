@@ -78,3 +78,13 @@ class Loan(db.Model):
     def cover_image_url(self):
         """Returns the full image URL if one was uploaded, or None (template falls back to the default)."""
         return self.cover_image if self.cover_image else None
+
+    @property
+    def next_available_date(self):
+        """Earliest due date among this book's active loans, or None if copies are already available."""
+        if self.is_available:
+            return None
+        active = [l for l in self.loans if l.return_date is None]
+        if not active:
+            return None
+        return min(l.due_date for l in active)
