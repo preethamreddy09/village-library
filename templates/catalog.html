@@ -13,6 +13,52 @@
   {% endif %}
 {% endwith %}
 
+<form method="GET" action="{{ url_for('catalog.home') }}" class="filter-bar">
+    <label class="grow">Search
+        <input type="text" name="q" value="{{ q }}" placeholder="Title or author…">
+    </label>
+
+    <label>Language
+        <select name="language" onchange="this.form.submit()">
+            <option value="">All</option>
+            {% for l in languages %}
+            <option value="{{ l }}" {{ "selected" if l == selected_language else "" }}>{{ l }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Age group
+        <select name="age_group" onchange="this.form.submit()">
+            <option value="">All</option>
+            {% for a in age_groups %}
+            <option value="{{ a }}" {{ "selected" if a == selected_age_group else "" }}>{{ a }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Genre
+        <select name="genre" onchange="this.form.submit()">
+            <option value="">All</option>
+            {% for g in genres %}
+            <option value="{{ g }}" {{ "selected" if g == selected_genre else "" }}>{{ g }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label class="check">
+        <input type="checkbox" name="available" value="1" {{ "checked" if only_available else "" }} onchange="this.form.submit()">
+        Available only
+    </label>
+
+    <button type="submit">Search</button>
+
+    {% if active_filters %}
+    <a href="{{ url_for('catalog.home') }}" class="clear-filters">Clear</a>
+    {% endif %}
+</form>
+
+<p class="result-count">{{ pagination.total }} book{{ "s" if pagination.total != 1 else "" }} found</p>
+
 <div class="catalog-grid">
     {% for book in books %}
     <div class="card">
@@ -20,6 +66,8 @@
              data-title="{{ book.title }}"
              data-author="{{ book.author }}"
              data-genre="{{ book.genre }}"
+             data-language="{{ book.language }}"
+             data-age="{{ book.age_group }}"
              data-summary="{{ book.summary }}"
              data-cover="{{ book.cover_image_url if book.cover_image_url else url_for('static', filename='uploads/default-cover.png') }}"
              data-available="{{ '1' if book.is_available else '0' }}"
@@ -36,6 +84,7 @@
         <span class="genre-tag">{{ book.genre }}</span>
         <h3>{{ book.title }}</h3>
         <p class="author">{{ book.author }}</p>
+        <p class="meta-line">{{ book.language }} · {{ book.age_group }}</p>
 
         <div class="availability">
             {% if book.is_available %}
@@ -56,10 +105,22 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <p>No books yet — the catalog is empty.</p>
+        <p>No books match your search. Try clearing a filter.</p>
     </div>
     {% endfor %}
 </div>
+
+{% if pagination.pages > 1 %}
+<div class="pagination">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for('catalog.home', page=pagination.prev_num, **active_filters) }}">← Previous</a>
+    {% endif %}
+    <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a href="{{ url_for('catalog.home', page=pagination.next_num, **active_filters) }}">Next →</a>
+    {% endif %}
+</div>
+{% endif %}
 
 <!-- Book detail modal -->
 <div class="modal-overlay" id="bookModal">
@@ -69,6 +130,7 @@
         <span class="genre-tag" id="modalGenre"></span>
         <h3 id="modalTitle"></h3>
         <p class="author" id="modalAuthor"></p>
+        <p class="meta-line" id="modalMeta"></p>
         <p class="summary-full" id="modalSummary"></p>
         <div class="availability" id="modalAvailability"></div>
     </div>
@@ -85,6 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("modalTitle").textContent = el.dataset.title;
             document.getElementById("modalAuthor").textContent = el.dataset.author;
             document.getElementById("modalGenre").textContent = el.dataset.genre;
+            document.getElementById("modalMeta").textContent = el.dataset.language + " · " + el.dataset.age;
             document.getElementById("modalSummary").textContent = el.dataset.summary || "No summary added yet.";
 
             const availEl = document.getElementById("modalAvailability");

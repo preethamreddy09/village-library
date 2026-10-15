@@ -11,6 +11,8 @@ class Book(db.Model):
     title = db.Column(db.String(200), nullable=False)
     author = db.Column(db.String(150), nullable=False)
     genre = db.Column(db.String(100), nullable=False)
+    language = db.Column(db.String(50), nullable=False, default="Other")
+    age_group = db.Column(db.String(50), nullable=False, default="All ages")
     summary = db.Column(db.Text, nullable=True)
     cover_image = db.Column(db.String(255), nullable=True)
     total_copies = db.Column(db.Integer, nullable=False, default=1)
@@ -19,7 +21,7 @@ class Book(db.Model):
 
     @property
     def cover_image_url(self):
-        """Returns the full image URL if one was uploaded, or None (template falls back to the default)."""
+        """Full image URL if one was uploaded, or None (template falls back to the default)."""
         return self.cover_image if self.cover_image else None
 
     @property
@@ -40,7 +42,7 @@ class Book(db.Model):
 
     @property
     def next_available_date(self):
-        """Earliest due date among this book's active loans, or None if copies are already available."""
+        """Earliest due date among active loans, or None if copies are available."""
         if self.is_available:
             return None
         active = [l for l in self.loans if l.return_date is None]
@@ -55,8 +57,11 @@ class Loan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=True)
 
+    # Snapshots taken when the book is lent, so history survives edits/deletes
     book_title = db.Column(db.String(200), nullable=False)
     book_genre = db.Column(db.String(100), nullable=False)
+    book_language = db.Column(db.String(50), nullable=True)
+    book_age_group = db.Column(db.String(50), nullable=True)
 
     borrower_name = db.Column(db.String(150), nullable=False)
     borrower_contact = db.Column(db.String(150), nullable=True)

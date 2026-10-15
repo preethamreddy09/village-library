@@ -437,3 +437,30 @@ button:hover, .btn:hover { background: var(--ledger-hover); }
     font-size: 13.5px;
 }
 .site-footer a { color: var(--ledger); font-weight: 600; }
+.filter-bar input[type="text"] {
+    padding: 7px 9px;
+    border: 1px solid var(--card-line);
+    border-radius: 3px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    min-width: 200px;
+}
+.filter-bar label.grow { flex: 1; min-width: 200px; }
+.filter-bar label.check {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 8px;
+}
+.result-count {
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin: 0 0 14px;
+}
+.meta-line {
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    margin: 0 0 8px;
+}

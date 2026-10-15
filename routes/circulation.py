@@ -46,6 +46,8 @@ def lend_book():
         book_id=book.id,
         book_title=book.title,
         book_genre=book.genre,
+        book_language=book.language,
+        book_age_group=book.age_group,
         borrower_name=borrower_name,
         borrower_contact=borrower_contact,
         issue_date=date.today(),

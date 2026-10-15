@@ -23,8 +23,31 @@
         <input type="text" name="author" required value="{{ book.author if book else '' }}">
     </label>
 
-    <label>Genre / category
-        <input type="text" name="genre" required value="{{ book.genre if book else '' }}">
+    <label>Genre
+        <select name="genre" required>
+            <option value="" disabled {{ "" if book else "selected" }}>Select a genre</option>
+            {% for g in genres %}
+            <option value="{{ g }}" {{ "selected" if book and book.genre == g else "" }}>{{ g }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Language
+        <select name="language" required>
+            <option value="" disabled {{ "" if book else "selected" }}>Select a language</option>
+            {% for l in languages %}
+            <option value="{{ l }}" {{ "selected" if book and book.language == l else "" }}>{{ l }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Age group
+        <select name="age_group" required>
+            <option value="" disabled {{ "" if book else "selected" }}>Select an age group</option>
+            {% for a in age_groups %}
+            <option value="{{ a }}" {{ "selected" if book and book.age_group == a else "" }}>{{ a }}</option>
+            {% endfor %}
+        </select>
     </label>
 
     <label>Summary
