@@ -33,4 +33,4 @@ class Config:
 
     SUPABASE_URL = os.environ.get("SUPABASE_URL")
     SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
-    SUPABASE_BUCKET = "book-covers"
+    SUPABASE_BUCKET = "book-images"
