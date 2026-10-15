@@ -17,7 +17,7 @@ def is_allowed_file(filename):
 
 
 def upload_cover_to_supabase(file):
-    """Uploads a cover image to Supabase Storage and returns its public URL, or None on failure."""
+    """Uploads a cover image to Supabase Storage. Returns (public_url, error_message)."""
     ext = file.filename.rsplit(".", 1)[-1].lower()
     filename = f"{uuid.uuid4().hex}.{ext}"
 
@@ -26,25 +26,31 @@ def upload_cover_to_supabase(file):
     bucket = current_app.config["SUPABASE_BUCKET"]
 
     if not supabase_url or not service_key:
-        return None
+        return None, "SUPABASE_URL or SUPABASE_SERVICE_KEY is not set on the server"
 
     upload_endpoint = f"{supabase_url}/storage/v1/object/{bucket}/{filename}"
     file_bytes = file.read()
 
-    response = requests.post(
-        upload_endpoint,
-        headers={
-            "Authorization": f"Bearer {service_key}",
-            "apikey": service_key,
-            "Content-Type": file.mimetype or "application/octet-stream",
-        },
-        data=file_bytes,
-    )
+    try:
+        response = requests.post(
+            upload_endpoint,
+            headers={
+                "Authorization": f"Bearer {service_key}",
+                "apikey": service_key,
+                "Content-Type": file.mimetype or "application/octet-stream",
+            },
+            data=file_bytes,
+            timeout=20,
+        )
+    except requests.RequestException as e:
+        print(f"SUPABASE UPLOAD ERROR: {e}", flush=True)
+        return None, f"could not reach Supabase ({type(e).__name__})"
 
     if response.status_code in (200, 201):
-        return f"{supabase_url}/storage/v1/object/public/{bucket}/{filename}"
-    print(f"SUPABASE UPLOAD FAILED: status={response.status_code}, body={response.text}")
-    return None
+        return f"{supabase_url}/storage/v1/object/public/{bucket}/{filename}", None
+
+    print(f"SUPABASE UPLOAD FAILED: status={response.status_code}, body={response.text}", flush=True)
+    return None, f"Supabase said {response.status_code}: {response.text[:150]}"
 
 
 def read_book_form():
@@ -154,9 +160,9 @@ def add_book():
         cover_url = None
         file = request.files.get("cover_image")
         if file and file.filename and is_allowed_file(file.filename):
-            cover_url = upload_cover_to_supabase(file)
+            cover_url, upload_error = upload_cover_to_supabase(file)
             if cover_url is None:
-                flash("Book saved, but the cover image failed to upload.")
+                flash(f"Book saved, but the cover image failed to upload: {upload_error}")
 
         new_book = Book(cover_image=cover_url, **data)
         db.session.add(new_book)
@@ -186,11 +192,11 @@ def edit_book(book_id):
 
         file = request.files.get("cover_image")
         if file and file.filename and is_allowed_file(file.filename):
-            cover_url = upload_cover_to_supabase(file)
+            cover_url, upload_error = upload_cover_to_supabase(file)
             if cover_url:
                 book.cover_image = cover_url
             else:
-                flash("Changes saved, but the new cover image failed to upload.")
+                flash(f"Changes saved, but the cover image failed to upload: {upload_error}")
 
         for field, value in data.items():
             setattr(book, field, value)
