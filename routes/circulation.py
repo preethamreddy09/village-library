@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import db, Book, Loan
 from routes.auth import login_required
+from sqlalchemy.orm import selectinload
 
 circulation_bp = Blueprint("circulation", __name__)
 
@@ -14,7 +15,7 @@ def circulation_home():
         .order_by(Loan.due_date)
         .all()
     )
-    lendable_books = [b for b in Book.query.order_by(Book.title).all() if b.is_available]
+    lendable_books = [b for b in Book.query.options(selectinload(Book.loans)).order_by(Book.title).all() if b.is_available]
     return render_template(
         "circulation.html", active_loans=active_loans, lendable_books=lendable_books
     )

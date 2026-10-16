@@ -5,6 +5,7 @@ from sqlalchemy import or_, func
 from models import db, Book, Loan
 from routes.auth import login_required
 from options import LANGUAGES, AGE_GROUPS, GENRES
+from sqlalchemy.orm import selectinload
 
 catalog_bp = Blueprint("catalog", __name__)
 
@@ -96,7 +97,7 @@ def home():
     only_available = request.args.get("available", "") == "1"
     page = request.args.get("page", 1, type=int)
 
-    query = Book.query
+    query = Book.query.options(selectinload(Book.loans))
 
     if q:
         like = f"%{q}%"
